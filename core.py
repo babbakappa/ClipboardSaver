@@ -1,17 +1,22 @@
 import pyperclip
+import savedtext
+import os
 
 class Clipboard:
     def __init__(self):
         self.memory = []
+
     def get_data_from_clipboard(self):
         data = pyperclip.paste()
-        if data != "":
-            self.memory.append(data)
+        obj = savedtext.SavedText()
+        obj.add_content(data)
+        if obj.content != "":
+            self.memory.append(obj)
 
     def check_previous(self):
         if len(self.memory) != 0:
             for elem in self.memory:
-                if elem == pyperclip.paste():
+                if elem.content == pyperclip.paste():
                     return True
         return False
 
@@ -19,22 +24,25 @@ class Clipboard:
         pyperclip.copy(text)
 
     def load_data_from_memory(self):
-        try:
-            file = open("filememory.txt", "r")
-            data = file.readlines()
+        array_content = []
+        files_list = [f for f in os.listdir("resources/memory")]
+        for elem in files_list:
+            file = open("resources/memory/" + elem, "r")
+            data = savedtext.SavedText()
+            data.add_content(file.read())
+            array_content.append(data)
             file.close()
-            data = [x.strip() for x in data]
-            return data
-        except FileNotFoundError:
-            return []
+        return array_content
 
     def save_data_to_memory(self):
-        file = open("filememory.txt", "w")
-        for elem in self.memory:
-            file.write(str(elem) + "\n")
-        file.close()
+        for i in range(len(self.memory)):
+            file = open(f"resources/memory/mem-{i}.txt", "w")
+            file.write(self.memory[i].content)
+            file.close()
 
     def delete_data_memory(self):
         self.memory.clear()
-        file = open("filememory.txt", "w")
-        file.close()
+        files_list = os.listdir("resources/memory")
+        for elem in files_list:
+            file_path = os.path.join("resources/memory", elem)
+            os.unlink(file_path)
