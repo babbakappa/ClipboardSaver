@@ -4,6 +4,7 @@ from tkinter import messagebox as msgbx
 from tkinter import filedialog
 import core
 import pyperclip
+import savedtext
 
 class GUI:
     def __init__(self):
@@ -11,12 +12,12 @@ class GUI:
         self.x = 400
         self.y = 650
         self.root.geometry(f"{self.x}x{self.y}")
-        self.root.title("ClipboardSaver 1.0")
+        self.root.title("ClipboardSaver 1.1")
         self.root.resizable(False, False)
         self.CPObject = core.Clipboard()
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.DEFAULT_TXT_FONT = "Segoe UI"
-        icon_image = tk.PhotoImage(file="icon.png")
+        icon_image = tk.PhotoImage(file="resources/icons/icon.png")
         self.root.iconphoto(True, icon_image)
 
     def launch(self):
@@ -51,11 +52,14 @@ class GUI:
         self.list_of_copied.bind("<Double-Button-1>", self.copy_selected)
 
     def update_list(self):
-        current = pyperclip.paste()
-        if current and current != "":
-            if current not in self.CPObject.memory:
-                self.CPObject.memory.append(current)
-                self.list_of_copied.insert(tk.END, current)
+        text_in_clipboard = pyperclip.paste()
+        if text_in_clipboard and text_in_clipboard != "":
+            existing_texts = [elem.content for elem in self.CPObject.memory]
+            if text_in_clipboard not in existing_texts:
+                obj = savedtext.SavedText()
+                obj.add_content(text_in_clipboard)
+                self.CPObject.memory.append(obj)
+                self.list_of_copied.insert(tk.END, text_in_clipboard)
 
         self.root.after(500, self.update_list)
 
@@ -63,7 +67,8 @@ class GUI:
         data = self.CPObject.load_data_from_memory()
         for elem in data:
             self.CPObject.memory.append(elem)
-            self.list_of_copied.insert(tk.END, elem)
+            self.list_of_copied.insert(tk.END, elem.content)
+        self.update_list()
 
     def put_data_to_file(self):
         self.CPObject.save_data_to_memory()
@@ -85,7 +90,7 @@ class GUI:
             )
             file = open(filepath, "w")
             for elem in self.CPObject.memory:
-                file.write(str(elem) + "\n")
+                file.write(str(elem.content) + "\n")
             file.close()
             msgbx.showinfo("Информация", "Список сохранен")
         except Exception as error:
