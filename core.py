@@ -1,5 +1,4 @@
 import pyperclip
-import savedtext
 import os
 
 class Clipboard:
@@ -8,10 +7,8 @@ class Clipboard:
 
     def get_data_from_clipboard(self):
         data = pyperclip.paste()
-        obj = savedtext.SavedText()
-        obj.add_content(data)
-        if obj.content != "":
-            self.memory.append(obj)
+        if data != "":
+            self.memory.append(data)
 
     def check_previous(self):
         if len(self.memory) != 0:
@@ -27,17 +24,16 @@ class Clipboard:
         array_content = []
         files_list = [f for f in os.listdir("resources/memory")]
         for elem in files_list:
-            file = open("resources/memory/" + elem, "r")
-            data = savedtext.SavedText()
-            data.add_content(file.read())
+            file = open("resources/memory/" + elem, "r", newline="")
+            data = file.read()
             array_content.append(data)
             file.close()
         return array_content
 
     def save_data_to_memory(self):
         for i in range(len(self.memory)):
-            file = open(f"resources/memory/mem-{i}.txt", "w")
-            file.write(self.memory[i].content)
+            file = open(f"resources/memory/mem-{i}.txt", "w", newline="")
+            file.write(self.memory[i])
             file.close()
 
     def delete_data_memory(self):
